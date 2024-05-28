@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #quiz-container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: white;
+            background-color: #2196F3;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #1565C0;
+        }
+
+        #timer {
+            margin-bottom: 10px;
+        }
+
+        #result-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result-text {
+            margin-bottom: 10px;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="quiz-container">
+        <h2 id="question"></h2>
+        <div id="choices"></div>
+        <button onclick="checkAnswer()">Submit Answer</button>
+        <p id="timer"></p>
+    </div>
+
+    <div id="result-container">
+        <h2>Quiz Result</h2>
+        <p class="result-text" id="result"></p>
+        <div id="correct-answers"></div>
+        <button id="retryBtn" style="display: none;" onclick="retryQuiz()">Retry Quiz</button>
+    </div>
+
+    <script>
+        var currentQuestion = 0;
+        var score = 0;
+        var timeLeft = 2000;
+        var timerInterval;
+
+        var quizData = [
+            {
+                question: {
+                    text: "1",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/d77a9594-5aad-486a-b82a-af9a24f7c326"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "6"
+            },
+
+            {
+                question: {
+                    text: "2",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/f21e4e77-1d90-45bb-a0b0-a92f1c0e3ad8"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "2"
+            },
+
+            {
+                question: {
+                    text: "3",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/0ff5e328-4b0a-4051-97ea-299c1c30f3db"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "1"
+            },
+
+            {
+                question: {
+                    text: "4",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/aa82d4c3-9793-4750-a7eb-8037cd85b0b6"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "3"
+            },
+
+            {
+                question: {
+                    text: "5",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/d20df6fc-1b56-47be-a381-521decf88c5f"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "5"
+            },
+
+            {
+                question: {
+                    text: "6",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/880e506c-439b-41c2-884a-0fe4e54b9d20"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "4"
+            },
+
+            {
+                question: {
+                    text: "7",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/edbae190-e10a-46cf-8c19-4cf3c7f0d4e2"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "2"
+            },
+
+            {
+                question: {
+                    text: "8",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/8adc1446-2e71-43ef-a20f-bab256d459dd"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "6"
+            },
+
+            {
+                question: {
+                    text: "9",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/4e941bb5-26e0-48eb-807b-fcd795d1a12a"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "1"
+            },
+
+            {
+                question: {
+                    text: "10",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/21efce69-cbdc-47dc-8dff-3f724cbd420c"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "2"
+            },
+            {
+                question: {
+                    text: "1",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/4769db42-a164-4eea-aa33-aa7e50a43979"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "1"
+            },
+
+            {
+                question: {
+                    text: "2",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/67e56d50-e735-4a07-9c63-38aa8f7ad429"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "3"
+            },
+
+            {
+                question: {
+                    text: "3",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/37399961-3866-432b-9dda-c13801ff5978"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "5"
+            },
+
+            {
+                question: {
+                    text: "4",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/b9bc344b-7e00-4ad3-9a48-fd5612a94352"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "6"
+            },
+
+            {
+                question: {
+                    text: "5",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/6f0dffbb-8138-4be8-97a0-90281bdde914"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "4"
+            },
+
+            {
+                question: {
+                    text: "6",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/62e7e62a-aeec-4235-91df-9fa02e364afe"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "3"
+            },
+
+            {
+                question: {
+                    text: "7",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/8d5d2d9b-3e74-43c0-8bfb-e45c39d46036"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "4"
+            },
+
+            {
+                question: {
+                    text: "8",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/T5IEBEUUNQDJ0YGAG5OGWMEAMS/d1465479-6518-4e85-96a8-7f61fc4d7ac6"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "5"
+            } ,
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/f0a0ff43-5db4-44dd-bedb-a85c0fc65918"
+                },
+                choices: ["A", "B", "C","D"],
+                correctAnswer: "A"
+            },
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/8cfb6d2a-f64e-4a4c-8db5-193d1523df4e"
+                },
+                choices: ["A", "B", "C","D"],
+                correctAnswer: "A"
+            },
+
+        
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/02727d7d-967c-4d60-8e74-43a93ee3e7d1"
+                },
+                choices: ["A", "B", "C","D"],
+                correctAnswer: "C"
+            },
+
+        
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/17691cf2-c784-40f5-9ffe-9fbe6716aeef"
+                },
+                choices: ["A", "B", "C","D"],
+                correctAnswer: "C"
+            },
+
+        
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/f76f0964-b804-45fa-8e87-e21d28e082c4"
+                },
+                choices: ["A", "B", "C","D"],
+                correctAnswer: "D"
+            },
+
+        
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/301a308f-eaca-41ed-b532-84a666c3511f"
+                },
+                choices: ["A", "B", "C","D"],
+                correctAnswer: "B"
+            },
+
+        
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/1ee59cf9-d3aa-42dc-998c-38358c23e28b"
+                },
+                choices: ["A", "B", "C","D"],
+                correctAnswer: "B"
+            },
+
+        
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/77cf6764-b58f-4444-819b-230ebff58efa"
+                },
+                choices: ["A", "B", "C","D"],
+                correctAnswer: "C"
+            },
+
+        
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/0ae44e1c-39f9-4824-9ad9-16b52804c7aa"
+                },
+                choices: ["A", "B", "C","D"],
+                correctAnswer: "D"
+            },
+
+        
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/fd2184e9-8e0e-47db-8eff-e15712dacc85"
+                },
+                choices: ["A", "B", "C","D"],
+                correctAnswer: "A"
+            },
+
+        
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/223be40f-41d0-45ee-864b-82705ce1b977"
+                },
+                choices: ["A", "B", "C","D"],
+                correctAnswer: "C"
+            },
+
+       
+            {
+                question: {
+                    text: "اكمل الشكل",
+                    image: "https://lists.office.com/Images/9188040d-6c67-4c5b-b112-36a304b66dad/00000000-0000-0000-0006-bffd20b2d784/TB3CCIAVGQVX42MCFX3L10PLCQ/0ac8fe1a-ee71-42b8-a8c3-ada955f67578"
+                },
+                choices: ["1", "2", "3","4","5","6"],
+                correctAnswer: "6"
+            }
+
+             
+
+
+
+
+            
+        ];
+
+        shuffleArray(quizData);
+
+        function shuffleArray(array) {
+            for (var i = array.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+            return array;
+        }
+
+        function loadQuestion() {
+            var currentQuiz = quizData[currentQuestion];
+
+            var questionElement = document.getElementById('question');
+            var choicesElement = document.getElementById('choices');
+
+            questionElement.innerHTML = `<p>${currentQuiz.question.text}</p>`;
+            if (currentQuiz.question.image) {
+                questionElement.innerHTML += `<img src="${currentQuiz.question.image}" alt="Question Image">`;
+            }
+
+            choicesElement.innerHTML = '';
+
+            for (var i = 0; i < currentQuiz.choices.length; i++) {
+                var choice = currentQuiz.choices[i];
+                choicesElement.innerHTML += '<label><input type="radio" name="choice" value="' + choice + '"> ' + choice + '</label>';
+            }
+
+            startTimer();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(function () {
+                document.getElementById('timer').innerHTML = 'Time Left: ' + timeLeft + 's';
+
+                if (timeLeft === 0) {
+                    clearInterval(timerInterval);
+                    checkAnswer();
+                } else {
+                    timeLeft--;
+                }
+            }, 1000);
+        }
+
+        function checkAnswer() {
+            var selectedOption = document.querySelector('input[name="choice"]:checked');
+            if (!selectedOption) {
+                alert('Please select an answer.');
+                return;
+            }
+
+            var userAnswer = selectedOption.value;
+            var currentQuiz = quizData[currentQuestion];
+
+            var choicesLabels = document.querySelectorAll('label');
+
+            for (var i = 0; i < choicesLabels.length; i++) {
+                choicesLabels[i].style.color = (currentQuiz.correctAnswer === currentQuiz.choices[i]) ? 'green' : 'red';
+            }
+
+            if (userAnswer === currentQuiz.correctAnswer) {
+                score++;
+            }
+
+            clearInterval(timerInterval);
+
+            currentQuestion++;
+
+            if (currentQuestion < quizData.length) {
+                setTimeout(function () {
+                    loadQuestion();
+                    resetColors();
+                }, 1000);
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            var resultElement = document.getElementById('result');
+            var correctAnswersElement = document.getElementById('correct-answers');
+
+            resultElement.innerHTML = 'Your Score: ' + score + ' out of ' + quizData.length;
+
+            correctAnswersElement.innerHTML = '<h3>Correct Answers:</h3>';
+            for (var i = 0; i < quizData.length; i++) {
+                var q = quizData[i];
+                correctAnswersElement.innerHTML += '<p><strong>Q: ' + q.question.text + '</strong><br>A: ' + q.correctAnswer + '</p>';
+            }
+
+            document.getElementById('result-container').style.display = 'block';
+            document.getElementById('retryBtn').style.display = 'block';
+        }
+
+        function resetColors() {
+            var choicesLabels = document.querySelectorAll('label');
+            for (var i = 0; i < choicesLabels.length; i++) {
+                choicesLabels[i].style.color = '#333';
+            }
+        }
+
+        function retryQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            timeLeft = 2000;
+
+            shuffleArray(quizData);
+
+            loadQuestion();
+            resetColors();
+
+            document.getElementById('result-container').style.display = 'none';
+            document.getElementById('retryBtn').style.display = 'none';
+        }
+
+        loadQuestion();
+    </script>
+
+</body>
+
+</html>
